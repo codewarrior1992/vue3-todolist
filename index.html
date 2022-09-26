@@ -66,7 +66,7 @@
 
                 <!-- Clear -->
                 <div class="d-flex align-items-center mt-3">
-                    <div class="me-auto">剩餘任務 : 3</div>
+                    <div class="me-auto">剩餘任務 : {{ restQuest.length }}</div>
                     <button class="btn btn-outline-secondary rounded-0" @click="removeAll">清除所有任務</button>
                 </div>
             </div>
@@ -142,9 +142,14 @@
                             return state.list
                     }
                 })
+                const restQuest = computed(()=>{
+                    return state.list.filter((todo)=> !todo.completed)
+                })
+
                 return { 
                     state,  
                     filtered,
+                    restQuest,
                     addTodo,
                     completedTodo, 
                     removeTodo, 
