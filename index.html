@@ -28,11 +28,11 @@
                     </li>
                     <li class="nav-item" @click="state.tabs = true">
                         <a class="nav-link" href="#"
-                        :class="{active : state.tabs}">已完成</a>
+                        :class="{active : state.tabs == true}">已完成</a>
                     </li>
                     <li class="nav-item" @click="state.tabs = false">
                         <a class="nav-link" href="#" 
-                        :class="{active : !state.tabs}">未完成</a>
+                        :class="{active : state.tabs == false}">未完成</a>
                     </li>
                 </ul>
 
