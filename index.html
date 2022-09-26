@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <div class="container my-5">
+            <!-- Input -->
+            <div class="input-group mb-3">
+                <span class="input-group-text">請輸入代辦事項</span>
+                <input type="text" class="form-control"  v-model="state.todo">
+                <button class="btn btn-outline-secondary" type="button" @click="addTodo">Button</button>
+            </div>
+
+            <div class="card-header mb-3 bg-white border">
+                <!-- Filter -->
+                <ul class="nav nav-tabs">
+                    <li class="nav-item" @click="state.tabs = null">
+                        <a class="nav-link"  href="#"
+                        :class="{active : state.tabs == null}">全部</a>
+                    </li>
+                    <li class="nav-item" @click="state.tabs = true">
+                        <a class="nav-link" href="#"
+                        :class="{active : state.tabs}">已完成</a>
+                    </li>
+                    <li class="nav-item" @click="state.tabs = false">
+                        <a class="nav-link" href="#" 
+                        :class="{active : !state.tabs}">未完成</a>
+                    </li>
+                </ul>
+
+                <!-- Todos -->
+                <ul class="list-group rounded-0 mt-3">
+                    <li class="list-group-item"  v-for="{value,id,completed,edit} in filtered" :key="id">
+                        <div class="d-flex align-items-center" 
+                            @dblclick.self="editTodo(id)"
+                            v-if="!edit"
+                        >
+                            <label for="completed" class="d-flex">
+                                <input type="checkbox" name="completed" class="me-2" 
+                                @click="completedTodo(id)"
+                                :checked="completed">
+                                <p class="m-0" :class="{'text-decoration-line-through' : completed }">{{ value }}</p>
+                            </label>
+                            <button type="button" class="btn-close ms-auto" @click="removeTodo(id)"></button>
+                        </div>
+
+                        <div class="d-flex" v-else>
+                            <input class="form-control" 
+                            type="text"
+                            v-model="state.catchTodo"
+                            @keyup.enter="updateTodo(id)"
+                            >
+                            <button class="btn btn-outline-secondary ms-3"
+                            @click="updateTodo(id)">Update</button>
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- Clear -->
+                <div class="d-flex align-items-center mt-3">
+                    <div class="me-auto">剩餘任務 : 3</div>
+                    <button class="btn btn-outline-secondary rounded-0" @click="removeAll">清除所有任務</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import {createApp, ref, reactive , watch, onMounted, computed} from 'https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.39/vue.esm-browser.min.js'
+        createApp({
+            setup(){
+                const state = reactive({
+                    todo : '',
+                    catchTodo : '',
+                    list : [],
+                    tabs : null
+                })
+
+                const addTodo = () => {
+                    state.list.unshift({
+                        id : Math.floor(Date.now()),
+                        value : state.todo,
+                        completed : false,
+                        edit : false
+                    })
+                }
+                const getTodo = (id) =>{
+                    const index = state.list.findIndex((item)=> item.id == id)
+                    return state.list[index]
+                }      
+                const completedTodo = (id) => {
+                    const todo = getTodo(id);
+                    todo.completed = !todo.completed;
+                }
+                const removeTodo = (id) => {
+                    const todo = getTodo(id);
+                    state.list = state.list.filter((todo)=> todo.id !== id)
+                }
+                const removeAll = () =>{
+                    state.list = []
+                }
+                const editTodo = (id) =>{
+                    state.list.forEach((todo)=>{
+                        if(todo.id === id){
+                            todo.edit = !todo.edit;
+                            console.log(todo.value)
+                            state.catchTodo = todo.value
+                        }
+                    })
+                }
+                const updateTodo = (id) => {
+                    const todo = getTodo(id);
+                    todo.edit = !todo.edit;
+                    todo.value = state.catchTodo
+                    
+                }
+
+                watch(
+                    () => state.list,
+                    () => { localStorage.setItem('list',JSON.stringify(state.list)) },
+                    { deep : true}
+                )
+                onMounted(
+                    ()=>{
+                        state.list = JSON.parse(localStorage.getItem('list')) || [];
+                    }
+                )
+                const filtered = computed(()=>{
+                    switch(state.tabs){
+                        case true : 
+                            return state.list.filter((todo)=> todo.completed)
+                        case false : 
+                            return state.list.filter((todo)=> !todo.completed)
+                        case null : 
+                            return state.list
+                    }
+                })
+                return { 
+                    state,  
+                    filtered,
+                    addTodo,
+                    completedTodo, 
+                    removeTodo, 
+                    removeAll,
+                    editTodo, 
+                    updateTodo 
+                }
+            }
+        }).mount('#app')
+    
+    </script> 
+</body>
+</html>
